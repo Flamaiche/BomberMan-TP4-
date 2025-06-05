@@ -40,7 +40,7 @@ public class Facade implements MaFacadeBomberman {
         player = new Player(this);
         placeCharacter(player);
 
-        controlerFacade.initMenu(player.MAXBOMB);
+        controlerFacade.initMenu(player.MAXBOMB, player.getHealth());
 
         addEnemy("goblin");
         addEnemy("minotaur");

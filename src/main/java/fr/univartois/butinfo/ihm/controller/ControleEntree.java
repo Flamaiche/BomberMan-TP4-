@@ -3,7 +3,11 @@ package fr.univartois.butinfo.ihm.controller;
 import fr.univartois.butinfo.ihm.model.*;
 import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
+import javafx.geometry.HPos;
+import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -22,10 +26,11 @@ public class ControleEntree implements IControlerFacade {
 
     @FXML private GridPane info;
 
+    private final int textImageTaille = 20;
     private Label affNbBomb;
-    private final String txtNbBomb = "nb Bomb : ";
-    private Label affVie;
-    private final String txtVie = "vie : ";
+    private final String txtNbBomb = "NB BOMB : ";
+    private HBox affVie;
+    private final String txtVie = "VIE : ";
 
     private final List<ImageView> bombViews = new ArrayList<>();
 
@@ -71,6 +76,7 @@ public class ControleEntree implements IControlerFacade {
         for (int i = 0; i < map.getHeight(); i++) {
             for (int j = 0; j < map.getWidth(); j++) {
                 ImageView image = new ImageView(Uploader.getImage(map.get(i, j).getContent().getName() + ".png"));
+                image.setPreserveRatio(true);
                 image.setFitWidth(taille);
                 image.setFitHeight(taille);
                 image.setUserData("tile"); // identifie comme tuile
@@ -94,8 +100,11 @@ public class ControleEntree implements IControlerFacade {
         if (character instanceof Player player) {
             player.nbBombProperty().addListener((obs, oldVal, newVal) ->
                     affNbBomb.setText(txtNbBomb + newVal));
+            player.healthProperty().addListener((obs, oldVal, newVal) ->
+                    createAffVie((int)newVal));
         }
         ImageView view = new ImageView(Uploader.getImage(character.getName() + ".png"));
+        view.setPreserveRatio(true);
         view.setFitWidth(taille);
         view.setFitHeight(taille);
         grid.add(view, character.getColumn(), character.getRow());
@@ -145,7 +154,7 @@ public class ControleEntree implements IControlerFacade {
         pause.play();
     }
 
-    public void initMenu(int nbBombMax) {
+    public void initMenu(int nbBombInit, int playerHealthInit) {
         GameMap map = facade.getMap();
         int menuNbCase = 2;
         GridPane.clearConstraints(info);
@@ -153,12 +162,45 @@ public class ControleEntree implements IControlerFacade {
             info.getColumnConstraints().add(new ColumnConstraints((map.getWidth()*1.0)*taille/menuNbCase));
         }
          // 1ere cellule / nbBomb
-        affNbBomb = new Label(txtNbBomb + nbBombMax);
+        affNbBomb = new Label(txtNbBomb + nbBombInit);
         info.add(affNbBomb, 0, 0);
+        GridPane.setHalignment(affNbBomb, HPos.CENTER);
+        GridPane.setValignment(affNbBomb, VPos.CENTER);
 
         //2eme cellule / vie
-        affVie = new Label(txtVie);
+        affVie = new HBox();
+        affVie.setAlignment(Pos.CENTER);
+        createAffVie(playerHealthInit);
         info.add(affVie, 1, 0);
+        GridPane.setHalignment(affVie, HPos.CENTER);
+        GridPane.setValignment(affVie, VPos.CENTER);
+    }
+
+    public HBox creatViewImageHeartHBox(int nbImage,int textImageTaille) {
+        HBox heartsBox = new HBox(5); // espacement de 5px entre les cœurs
+        for (int i = 0; i < nbImage; i++) {
+            ImageView heart = new ImageView(Uploader.getImage("heart.png"));
+            heart.setFitWidth(textImageTaille);
+            heart.setFitHeight(textImageTaille);
+            heart.setPreserveRatio(true);
+            heartsBox.getChildren().add(heart);
+        }
+        return heartsBox;
+    }
+
+    public void createAffVie(int playerHealthInit) {
+        affVie.getChildren().clear();
+        Label labelVie = new Label(txtVie);
+        Label labelVieEnPlus = new Label("");
+        affVie.getChildren().add(labelVie);
+        affVie.getChildren().add(labelVieEnPlus);
+        if (playerHealthInit > 5) {
+            labelVieEnPlus.setText("+" + (playerHealthInit-5));
+            playerHealthInit = 5;
+        }
+        labelVie.setContentDisplay(ContentDisplay.RIGHT);
+        System.out.println(playerHealthInit);
+        labelVie.setGraphic(creatViewImageHeartHBox(playerHealthInit, textImageTaille));
     }
 
 }

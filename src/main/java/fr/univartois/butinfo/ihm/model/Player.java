@@ -17,11 +17,16 @@ public class Player extends AbstractCharacter {
     public Player(MaFacadeBomberman game) {
         super(game, 3);
         remplissageBomb(BOMB_EXITANTE[0]);
+        nbBomb.set(inventaireBomb.size());
     }
 
     @Override
     public String getName() {
         return "guy";
+    }
+
+    public ArrayList<AbstractBomb> getInventaireBomb() {
+        return inventaireBomb;
     }
 
     public void remplissageBomb() {
@@ -39,22 +44,26 @@ public class Player extends AbstractCharacter {
         }
     }
 
-    public AbstractBomb getSelectedBomb() {
+    public AbstractBomb getSelectedBomb(int index) {
         if (inventaireBomb.isEmpty()) return null;
-        return inventaireBomb.getFirst();
+        return inventaireBomb.get(index);
+    }
+
+    public AbstractBomb getSelectedBomb() {
+        return getSelectedBomb(0);
     }
 
     public void delSelectedBomb() {
-        if (inventaireBomb.isEmpty()) return;
-        inventaireBomb.removeFirst();
-        nbBomb.set(inventaireBomb.size());
+        delSelectedBomb(inventaireBomb.getFirst());
     }
 
-    public AbstractBomb dropBomb() {
-        AbstractBomb bomb = getSelectedBomb();
-        delSelectedBomb();
-        return bomb;
+    public void delSelectedBomb(AbstractBomb bomb) {
+        if (inventaireBomb.isEmpty()) return;
+        inventaireBomb.remove(bomb);
+        nbBomb.set(inventaireBomb.size());
+        System.out.println(nbBomb.get());
     }
+
 
     public  int getNbBomb() {
         return nbBomb.get();

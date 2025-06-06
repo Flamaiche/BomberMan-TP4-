@@ -12,15 +12,14 @@ public class Facade implements MaFacadeBomberman {
 
     private GameMap map;
     private Player player;
-    private List<Enemy> enemies = new ArrayList<>();
-    private List<AbstractBomb> bombs = new ArrayList<>();
+    private List<Enemy> enemies;
+    private List<AbstractBomb> bombs;
     private IControlerFacade controlerFacade;
-    private Boolean statusFinishPartiee = null;
-    private Timeline timelineEnemies = new Timeline();
-
-    public Facade() {
-        map = GameMapFactory.createMapWithRandomBrickWalls(10, 10, 10);
-    }
+    private Boolean statusFinishPartiee;
+    private Timeline timelineEnemies;
+    private final int HEIGHT = 10;
+    private final int WIDTH = 10;
+    private final int NBWALL = 15;
 
     public void setControlerFacade(IControlerFacade controlerFacade) {
         this.controlerFacade = controlerFacade;
@@ -37,6 +36,12 @@ public class Facade implements MaFacadeBomberman {
     }
 
     public void initGame() {
+        System.out.println("init");
+        map = GameMapFactory.createMapWithRandomBrickWalls(HEIGHT, WIDTH, NBWALL);
+        enemies = new ArrayList<>();
+        bombs = new ArrayList<>();
+        statusFinishPartiee = null;
+        timelineEnemies = new Timeline();
         player = new Player(this);
         placeCharacter(player);
 
@@ -56,6 +61,10 @@ public class Facade implements MaFacadeBomberman {
         generalBind();
 
         launchEnemyMovement();
+    }
+
+    public Player getPlayer() {
+        return player;
     }
 
     public void placeCharacter(AbstractCharacter character) {
@@ -87,20 +96,14 @@ public class Facade implements MaFacadeBomberman {
     }
 
     public void dropBomb() {
-        AbstractBomb prototype = player.dropBomb();
-        if (prototype == null) return;
+        dropBomb(player.getSelectedBomb());
+    }
 
-        AbstractBomb bomb;
-        if (prototype instanceof Bomb) {
-            bomb = new Bomb(this);
-        } else if (prototype instanceof RowBomb) {
-            bomb = new RowBomb(this);
-        } else if (prototype instanceof ColumnBomb) {
-            bomb = new ColumnBomb(this);
-        } else if (prototype instanceof LargeBomb) {
-            bomb = new LargeBomb(this);
-        } else {
-            bomb = new RowBomb(this); // default
+    public void dropBomb(AbstractBomb bomb) {
+        if (bomb == null) return;
+        System.out.println(player.getInventaireBomb().contains(bomb));
+        if (player.getInventaireBomb().contains(bomb)) {
+            player.delSelectedBomb(bomb);
         }
 
         bomb.setPosition(player.getRow(), player.getColumn());
@@ -196,7 +199,5 @@ public class Facade implements MaFacadeBomberman {
     public void stopGame() {
         timelineEnemies.stop();
         System.out.println(statusFinishPartiee);
-        System.exit(0);
-
     }
 }

@@ -1,5 +1,7 @@
 package fr.univartois.butinfo.ihm.model;
 
+import java.util.ArrayList;
+
 public interface IControlerFacade {
 
     void updateGame();
@@ -12,5 +14,4 @@ public interface IControlerFacade {
 
     void showExplosion(int row, int column);
 
-    void initMenu(int nbBombMax, int playerHealthInit);
-}
+    void initMenu(int nbBombMax, int playerHealthInit);}

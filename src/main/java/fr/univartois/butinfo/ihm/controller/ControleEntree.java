@@ -2,17 +2,26 @@ package fr.univartois.butinfo.ihm.controller;
 
 import fr.univartois.butinfo.ihm.model.*;
 import javafx.animation.PauseTransition;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.HPos;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +40,7 @@ public class ControleEntree implements IControlerFacade {
     private final String txtNbBomb = "NB BOMB : ";
     private HBox affVie;
     private final String txtVie = "VIE : ";
+    private Button resetButton;
 
     private final List<ImageView> bombViews = new ArrayList<>();
 
@@ -52,6 +62,13 @@ public class ControleEntree implements IControlerFacade {
                 case DOWN -> facade.movePlayer(1, 0);
                 case LEFT -> facade.movePlayer(0, -1);
                 case RIGHT -> facade.movePlayer(0, 1);
+                case I -> {
+                            try {
+                                afficherInventaire();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
             }
         });
         grid.setOnKeyReleased(event -> {
@@ -156,24 +173,42 @@ public class ControleEntree implements IControlerFacade {
 
     public void initMenu(int nbBombInit, int playerHealthInit) {
         GameMap map = facade.getMap();
-        int menuNbCase = 2;
-        GridPane.clearConstraints(info);
+        info.setPrefSize(map.getWidth(), taille);
+        final int menuNbCase = 3;
+        info.getChildren().clear();
+        info.getColumnConstraints().clear();
+        info.getRowConstraints().clear();
         for (int i = 0; i < menuNbCase; i++) {
-            info.getColumnConstraints().add(new ColumnConstraints((map.getWidth()*1.0)*taille/menuNbCase));
+            ColumnConstraints col = new ColumnConstraints();
+            col.setPercentWidth(100.0 / menuNbCase); // 33.33% par colonne
+            info.getColumnConstraints().add(col);
         }
-         // 1ere cellule / nbBomb
+        info.setPadding(new Insets(10));
+
+        // 1ère cellule : nbBomb
         affNbBomb = new Label(txtNbBomb + nbBombInit);
-        info.add(affNbBomb, 0, 0);
         GridPane.setHalignment(affNbBomb, HPos.CENTER);
         GridPane.setValignment(affNbBomb, VPos.CENTER);
+        info.add(affNbBomb, 0, 0);
 
-        //2eme cellule / vie
+        // 2e cellule : vie
         affVie = new HBox();
-        affVie.setAlignment(Pos.CENTER);
-        createAffVie(playerHealthInit);
-        info.add(affVie, 1, 0);
         GridPane.setHalignment(affVie, HPos.CENTER);
         GridPane.setValignment(affVie, VPos.CENTER);
+        createAffVie(playerHealthInit);
+        info.add(affVie, 1, 0);
+
+        // 3e cellule : bouton reset
+        resetButton = new Button("Reset");
+        resetButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        resetButton.setOnAction(event -> {
+            System.out.println("Reset button pressed");
+            facade.stopGame();
+            facade.initGame();
+        });
+        GridPane.setHalignment(resetButton, HPos.CENTER);
+        GridPane.setValignment(resetButton, VPos.CENTER);
+        info.add(resetButton, 2, 0);
     }
 
     public HBox creatViewImageHeartHBox(int nbImage,int textImageTaille) {
@@ -199,8 +234,24 @@ public class ControleEntree implements IControlerFacade {
             playerHealthInit = 5;
         }
         labelVie.setContentDisplay(ContentDisplay.RIGHT);
-        System.out.println(playerHealthInit);
         labelVie.setGraphic(creatViewImageHeartHBox(playerHealthInit, textImageTaille));
     }
+
+    private void afficherInventaire() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fr/univartois/butinfo/ihm/view/inventaire.fxml"));
+        Parent inventaireRoot = loader.load();
+
+        InventaireController controllerInventaire = loader.getController();
+        controllerInventaire.setFacade(facade);
+        controllerInventaire.setScenePrincipale(grid.getScene());
+        ObservableList<AbstractBomb> observableBombs = FXCollections.observableArrayList(facade.getPlayer().getInventaireBomb());
+        controllerInventaire.setBombList(observableBombs);
+
+        Stage stage = (Stage) grid.getScene().getWindow();
+        stage.setScene(new Scene(inventaireRoot));
+        stage.show();
+    }
+
+
 
 }

@@ -74,7 +74,6 @@ public class Player extends AbstractCharacter {
         if (inventaireBomb.isEmpty()) return;
         inventaireBomb.remove(bomb);
         nbBomb.set(inventaireBomb.size());
-        System.out.println(nbBomb.get());
     }
 
 

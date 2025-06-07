@@ -9,7 +9,6 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 
@@ -34,7 +33,7 @@ public class InventaireController {
     private ImageView bombImageView;
 
     @FXML
-    private Button validerButton;
+    private Button selectionButton;
 
     private Scene scenePrincipale;
     private Facade facade;
@@ -46,8 +45,8 @@ public class InventaireController {
                 case ENTER:
                     validerChoix();
                     // Optionnel : effet visuel de clic sur le bouton
-                    validerButton.arm();
-                    Platform.runLater(() -> validerButton.disarm());
+                    selectionButton.arm();
+                    Platform.runLater(() -> selectionButton.disarm());
                     event.consume();
                     break;
                 case ESCAPE:
@@ -102,18 +101,18 @@ public class InventaireController {
                     bombImageView.setImage(null);
                 }
 
-                validerButton.setVisible(true);
-                validerButton.setDisable(false);
+                selectionButton.setVisible(true);
+                selectionButton.setDisable(false);
             } else {
-                validerButton.setVisible(false);
-                validerButton.setDisable(true);
+                selectionButton.setVisible(false);
+                selectionButton.setDisable(true);
             }
         });
 
         // Si la liste est vide, on masque le bouton
         if (groupedList.isEmpty()) {
-            validerButton.setVisible(false);
-            validerButton.setDisable(true);
+            selectionButton.setVisible(false);
+            selectionButton.setDisable(true);
         }
     }
 
@@ -123,7 +122,7 @@ public class InventaireController {
     private void validerChoix() {
         BombGroup selectedGroup = bombListView.getSelectionModel().getSelectedItem();
         if (selectedGroup != null) {
-            facade.dropBomb(selectedGroup.getBomb());
+            facade.setBombPriority(selectedGroup.getBomb().getName());
             setBombList(FXCollections.observableArrayList(facade.getPlayer().getInventaireBomb()));
         }
         annulerChoix();
@@ -131,6 +130,7 @@ public class InventaireController {
 
     @FXML
     private void annulerChoix() {
+        facade.setPaused(false);
         Stage stage = (Stage) bombListView.getScene().getWindow();
         stage.setScene(scenePrincipale);
     }

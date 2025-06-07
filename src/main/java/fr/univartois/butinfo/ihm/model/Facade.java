@@ -2,6 +2,8 @@ package fr.univartois.butinfo.ihm.model;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.util.Duration;
 
 import java.util.ArrayList;
@@ -13,16 +15,31 @@ public class Facade implements MaFacadeBomberman {
     private GameMap map;
     private Player player;
     private List<Enemy> enemies;
+    private final IntegerProperty nbEnemiesProperty = new SimpleIntegerProperty();
     private List<AbstractBomb> bombs;
+    private String bombPriority = "";
     private IControlerFacade controlerFacade;
     private Boolean statusFinishPartiee;
     private Timeline timelineEnemies;
     private final int HEIGHT = 10;
-    private final int WIDTH = 10;
-    private final int NBWALL = 15;
+    private final int WIDTH = 20;
+    private final int NBWALL = 30;
+    private boolean paused;
+
+    public Facade() {
+        map = GameMapFactory.createMapWithRandomBrickWalls(HEIGHT, WIDTH, NBWALL);
+    }
 
     public void setControlerFacade(IControlerFacade controlerFacade) {
         this.controlerFacade = controlerFacade;
+    }
+
+    public void setPaused(boolean paused) {
+        this.paused = paused;
+    }
+
+    public void setBombPriority(String bombPriority) {
+        this.bombPriority = bombPriority;
     }
 
     public GameMap getMap() {
@@ -35,7 +52,16 @@ public class Facade implements MaFacadeBomberman {
         enemies.add(enemy);
     }
 
+    public IntegerProperty nbEnemiesProperty() {
+        return nbEnemiesProperty;
+    }
+
+    public void updateNbEnemies() {
+        nbEnemiesProperty.set(enemies.size());
+    }
+
     public void initGame() {
+        paused = false;
         if (timelineEnemies != null) {
             timelineEnemies.stop();
         }
@@ -92,6 +118,10 @@ public class Facade implements MaFacadeBomberman {
         return player;
     }
 
+    public List<Enemy> getEnemyList() {
+        return enemies;
+    }
+
     public void placeCharacter(AbstractCharacter character) {
         List<Tile> emptyTiles = map.getEmptyTiles();
         if (!emptyTiles.isEmpty()) {
@@ -101,6 +131,7 @@ public class Facade implements MaFacadeBomberman {
     }
 
     public void movePlayer(int dRow, int dCol) {
+        if (paused) return; // Ne permet pas de déplacer le joueur si le jeu est en pause
         int newRow = player.getRow() + dRow;
         int newCol = player.getColumn() + dCol;
 
@@ -134,11 +165,19 @@ public class Facade implements MaFacadeBomberman {
     }
 
     public void dropBomb() {
-        dropBomb(player.getSelectedBomb());
+        AbstractBomb bomb = player.getSelectedBomb();
+        for (AbstractBomb b : player.getInventaireBomb()) {
+            if (b.getName().equals(bombPriority)) {
+                bomb = b;
+                break;
+            }
+        }
+        dropBomb(bomb);
     }
 
     public void dropBomb(AbstractBomb bomb) {
         if (bomb == null) return;
+        bombPriority = bomb.getName();
         if (player.getInventaireBomb().contains(bomb)) {
             player.delSelectedBomb(bomb);
         }
@@ -218,6 +257,7 @@ public class Facade implements MaFacadeBomberman {
     }
 
     private void moveEnemies() {
+        if (paused) return; // Ne permet pas de déplacer les ennemis si le jeu est en pause
         Random rand = new Random();
         int[][] dirs = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 

@@ -51,4 +51,8 @@ public abstract class AbstractCharacter {
     public IntegerProperty healthProperty() {
         return health;
     }
+
+    public String toString() {
+        return getName();
+    }
 }

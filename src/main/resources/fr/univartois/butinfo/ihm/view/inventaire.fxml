@@ -40,7 +40,7 @@
             <padding>
                 <Insets top="10" right="10" bottom="10" left="10"/>
             </padding>
-            <Button fx:id="validerButton" text="Valider" onAction="#validerChoix" />
+            <Button fx:id="selectionButton" text="Selectionner" onAction="#validerChoix" />
             <Button text="Annuler" onAction="#annulerChoix" />
         </HBox>
     </bottom>

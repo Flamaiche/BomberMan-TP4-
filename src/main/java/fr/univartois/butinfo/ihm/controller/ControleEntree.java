@@ -27,7 +27,7 @@ import java.util.List;
 
 public class ControleEntree implements IControlerFacade {
 
-    public static final int taille = 50;
+    public static int taille;  // pour taille 10*10
     private Facade facade;
 
     @FXML
@@ -53,39 +53,58 @@ public class ControleEntree implements IControlerFacade {
 
     @FXML
     public void initialize() {
-        grid.setPrefSize(taille * 10, taille * 10);
-        for (int i = 0; i < 10; i++) {
-            grid.getColumnConstraints().add(new ColumnConstraints(taille));
-            grid.getRowConstraints().add(new RowConstraints(taille));
+        initController(50, 10, 10); // valeurs par défaut
+    }
+
+    public void initController(int taille, int width, int height) {
+        ControleEntree.taille = taille;
+
+        grid.setPrefSize(taille * width, taille * height);
+        grid.getChildren().clear();
+        grid.getColumnConstraints().clear();
+        grid.getRowConstraints().clear();
+
+        for (int i = 0; i < width; i++) {
+            ColumnConstraints col = new ColumnConstraints(taille);
+            grid.getColumnConstraints().add(col);
         }
-        // Focus
+
+        for (int j = 0; j < height; j++) {
+            RowConstraints row = new RowConstraints(taille);
+            grid.getRowConstraints().add(row);
+        }
+
         grid.setFocusTraversable(true);
-        // Gestion du clavier
+
+        // Gestion du clavier (à réutiliser dans initialize ou déplacer ici si nécessaire)
         grid.setOnKeyPressed(event -> {
-            if (facade.getStatusFinishPartiee() != null) return;
+            if (facade == null || facade.getStatusFinishPartiee() != null) return;
             switch (event.getCode()) {
                 case UP -> facade.movePlayer(-1, 0);
                 case DOWN -> facade.movePlayer(1, 0);
                 case LEFT -> facade.movePlayer(0, -1);
                 case RIGHT -> facade.movePlayer(0, 1);
-                case I -> {
-                            inventaireButton.fire();
-                        }
-            }
-        });
-        grid.setOnKeyReleased(event -> {
-            if (facade.getStatusFinishPartiee() != null) return;
-            switch (event.getCode()) {
-                case SPACE -> facade.dropBomb();
+                case I -> inventaireButton.fire();
             }
         });
 
-        endLabel.setVisible(false);
-        endLabel.setAlignment(Pos.CENTER);
+        grid.setOnKeyReleased(event -> {
+            if (facade == null || facade.getStatusFinishPartiee() != null) return;
+            if (event.getCode() == javafx.scene.input.KeyCode.SPACE) {
+                facade.dropBomb();
+            }
+        });
+
+        if (endLabel != null) {
+            endLabel.setVisible(false);
+            endLabel.setAlignment(Pos.CENTER);
+        }
     }
 
     public void setFacade(Facade facade) {
         this.facade = facade;
+        int nouvelleTaille = 50 * 10 / Math.max(facade.getMap().getWidth(),facade.getMap().getHeight());
+        initController(nouvelleTaille, facade.getMap().getWidth(), facade.getMap().getHeight());
     }
 
     @Override
@@ -228,6 +247,9 @@ public class ControleEntree implements IControlerFacade {
         GridPane.setValignment(affNbEnemy, VPos.CENTER);
         affNbEnemy.setAlignment(Pos.CENTER);
         info.add(affNbEnemy, 2, 0);
+        facade.nbEnemiesProperty().addListener((obs, oldVal, newVal) -> {
+            affNbEnemy.setText(txtNbEnemy + newVal);
+        });
 
         // 4e cellule : inventaire (col 0, row 1)
         inventaireButton = new Button("Inventaire");
@@ -264,11 +286,7 @@ public class ControleEntree implements IControlerFacade {
         EnemyButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         EnemyButton.setOnAction(event -> {
             try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fr/univartois/butinfo/ihm/view/enemies.fxml"));
-                Parent enemiesRoot = loader.load();
-                Stage stage = (Stage) grid.getScene().getWindow();
-                stage.setScene(new Scene(enemiesRoot));
-                stage.show();
+                afficherEnemies();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -277,8 +295,6 @@ public class ControleEntree implements IControlerFacade {
         GridPane.setValignment(EnemyButton, VPos.CENTER);
         info.add(EnemyButton, 2, 1);
     }
-
-
 
     public HBox creatViewImageHeartHBox(int nbImage,int textImageTaille) {
         HBox heartsBox = new HBox(5); // espacement de 5px entre les cœurs
@@ -307,6 +323,7 @@ public class ControleEntree implements IControlerFacade {
     }
 
     private void afficherInventaire() throws IOException {
+        facade.setPaused(true);
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fr/univartois/butinfo/ihm/view/inventaire.fxml"));
         Parent inventaireRoot = loader.load();
 
@@ -321,13 +338,34 @@ public class ControleEntree implements IControlerFacade {
         stage.show();
     }
 
+    private void afficherEnemies() throws IOException {
+        facade.setPaused(true);
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fr/univartois/butinfo/ihm/view/enemies.fxml"));
+        Parent enemiesRoot = loader.load();
+
+        EnemiesController enemiesController = loader.getController();
+        enemiesController.setFacade(facade);
+        enemiesController.setScenePrincipale(grid.getScene());
+
+        ObservableList<Enemy> enemyList = FXCollections.observableArrayList(facade.getEnemyList());
+        enemiesController.setEnemyList(enemyList);
+
+        Stage stage = (Stage) grid.getScene().getWindow();
+        stage.setScene(new Scene(enemiesRoot));
+        stage.show();
+    }
+
     public void showEndMessage(String message) {
         endLabel.setText(message);
         endLabel.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7); -fx-padding: 20px; -fx-font-size: 36px; -fx-text-fill: white;");
         endLabel.setVisible(true);
 
-        // Optionnel : désactiver la grille de jeu pour bloquer les interactions
+        // Désactiver la grille de jeu pour bloquer les interactions
         grid.setDisable(true);
+
+        // Supprimer toutes les bombes restantes à la fin du jeu
+        bombViews.forEach(view -> grid.getChildren().remove(view));
+        bombViews.clear();
 
     }
 

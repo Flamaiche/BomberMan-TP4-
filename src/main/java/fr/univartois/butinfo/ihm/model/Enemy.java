@@ -27,7 +27,7 @@ public class Enemy extends AbstractCharacter {
 
 class Goblin extends Enemy {
 
-    private static final int HEALTH = 2;
+    private static final int HEALTH = 1;
     private static final int NB_DEPLACEMENT = 1;
 
     public Goblin() {
@@ -38,7 +38,7 @@ class Goblin extends Enemy {
 
 class Agent extends Enemy {
 
-    private static final int HEALTH = 4;
+    private static final int HEALTH = 1;
     private static final int NB_DEPLACEMENT = 2;
 
     public Agent() {
@@ -49,7 +49,7 @@ class Agent extends Enemy {
 
 class Minotaur extends Enemy {
 
-    private static final int HEALTH = 6;
+    private static final int HEALTH = 3;
     private static final int NB_DEPLACEMENT = 1;
 
     public Minotaur() {
@@ -60,8 +60,8 @@ class Minotaur extends Enemy {
 
 class Punker extends Enemy {
 
-    private static final int HEALTH = 3;
-    private static final int NB_DEPLACEMENT = 2;
+    private static final int HEALTH = 2;
+    private static final int NB_DEPLACEMENT = 1;
 
     public Punker() {
         super("punker", HEALTH, NB_DEPLACEMENT);
@@ -71,8 +71,8 @@ class Punker extends Enemy {
 
 class Rourke extends Enemy {
 
-    private static final int HEALTH = 5;
-    private static final int NB_DEPLACEMENT = 1;
+    private static final int HEALTH = 2;
+    private static final int NB_DEPLACEMENT = 2;
 
     public Rourke() {
         super("rourke", HEALTH, NB_DEPLACEMENT);

@@ -17,4 +17,6 @@ public interface IControlerFacade {
     void initMenu(int nbBombMax, int playerHealthInit, int nbEnemy);
 
     void showEndMessage(String message);
+
+    void setFacade(Facade facade);
 }

@@ -71,7 +71,7 @@ public class ColumnBomb extends AbstractBomb {
     @Override
     public void explode() {
         exploded.set(true);
-        for (int i = -1; i <= 1; i++) {
+        for (int i = -2; i <= 2; i++) {
             game.explode(row + i, column);
         }
     }

@@ -19,8 +19,9 @@ public class BombermanApplication extends Application {
 
         ControleEntree controller = fxmlLoader.getController();
         Facade facade = new Facade();
-        controller.setFacade(facade);
         facade.setControlerFacade(controller);
+
+        controller.setFacade(facade);
         facade.initGame();
 
         Scene scene = new Scene(root);

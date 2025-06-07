@@ -18,8 +18,6 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -46,6 +44,10 @@ public class ControleEntree implements IControlerFacade {
     private HBox affVie;
     private final String txtVie = "VIE : ";
     private Button resetButton;
+    private Button inventaireButton;
+    private Button EnemyButton;
+    private Label affNbEnemy;
+    private final String txtNbEnemy = "NB ENEMY : ";
 
     private final List<ImageView> bombViews = new ArrayList<>();
 
@@ -67,11 +69,7 @@ public class ControleEntree implements IControlerFacade {
                 case LEFT -> facade.movePlayer(0, -1);
                 case RIGHT -> facade.movePlayer(0, 1);
                 case I -> {
-                            try {
-                                afficherInventaire();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                            inventaireButton.fire();
                         }
             }
         });
@@ -178,34 +176,75 @@ public class ControleEntree implements IControlerFacade {
         pause.play();
     }
 
-    public void initMenu(int nbBombInit, int playerHealthInit) {
+    public void initMenu(int nbBombInit, int playerHealthInit, int nbEnemyInit) {
         GameMap map = facade.getMap();
         info.setPrefSize(map.getWidth(), taille);
-        final int menuNbCase = 3;
+        final int menuNbCaseColumn = 3;
+        final int menuNbCaseRow = 2;
+
         info.getChildren().clear();
         info.getColumnConstraints().clear();
         info.getRowConstraints().clear();
-        for (int i = 0; i < menuNbCase; i++) {
+
+        // Colonnes
+        for (int i = 0; i < menuNbCaseColumn; i++) {
             ColumnConstraints col = new ColumnConstraints();
-            col.setPercentWidth(100.0 / menuNbCase); // 33.33% par colonne
+            col.setPercentWidth(100.0 / menuNbCaseColumn);
+            col.setHgrow(Priority.ALWAYS);
             info.getColumnConstraints().add(col);
         }
+
+        // Lignes
+        for (int i = 0; i < menuNbCaseRow; i++) {
+            RowConstraints row = new RowConstraints();
+            row.setPercentHeight(100.0 / menuNbCaseRow);
+            row.setVgrow(Priority.ALWAYS);
+            info.getRowConstraints().add(row);
+        }
+
         info.setPadding(new Insets(10));
 
-        // 1ère cellule : nbBomb
+        // 1ère cellule : nbBomb (col 0, row 0)
         affNbBomb = new Label(txtNbBomb + nbBombInit);
+        affNbBomb.setMaxWidth(Double.MAX_VALUE);
         GridPane.setHalignment(affNbBomb, HPos.CENTER);
         GridPane.setValignment(affNbBomb, VPos.CENTER);
+        affNbBomb.setAlignment(Pos.CENTER);
         info.add(affNbBomb, 0, 0);
 
-        // 2e cellule : vie
+        // 2e cellule : vie (col 1, row 0)
         affVie = new HBox();
+        affVie.setMaxWidth(Double.MAX_VALUE);
         GridPane.setHalignment(affVie, HPos.CENTER);
         GridPane.setValignment(affVie, VPos.CENTER);
+        affVie.setAlignment(Pos.CENTER);
         createAffVie(playerHealthInit);
         info.add(affVie, 1, 0);
 
-        // 3e cellule : bouton reset
+        // 3e cellule : nbEnemy (col 2, row 0) - à créer comme nbBomb
+        affNbEnemy = new Label(txtNbEnemy + nbEnemyInit);  // txtNbEnemy à définir comme txtNbBomb
+        affNbEnemy.setMaxWidth(Double.MAX_VALUE);
+        GridPane.setHalignment(affNbEnemy, HPos.CENTER);
+        GridPane.setValignment(affNbEnemy, VPos.CENTER);
+        affNbEnemy.setAlignment(Pos.CENTER);
+        info.add(affNbEnemy, 2, 0);
+
+        // 4e cellule : inventaire (col 0, row 1)
+        inventaireButton = new Button("Inventaire");
+        inventaireButton.setFocusTraversable(false);
+        inventaireButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        inventaireButton.setOnAction(event -> {
+            try {
+                afficherInventaire();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        GridPane.setHalignment(inventaireButton, HPos.CENTER);
+        GridPane.setValignment(inventaireButton, VPos.CENTER);
+        info.add(inventaireButton, 0, 1);
+
+        // 5e cellule : reset (col 1, row 1)
         resetButton = new Button("Reset");
         resetButton.setFocusTraversable(false);
         resetButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
@@ -217,8 +256,29 @@ public class ControleEntree implements IControlerFacade {
         });
         GridPane.setHalignment(resetButton, HPos.CENTER);
         GridPane.setValignment(resetButton, VPos.CENTER);
-        info.add(resetButton, 2, 0);
+        info.add(resetButton, 1, 1);
+
+        // 6e cellule : enemy (col 2, row 1)
+        EnemyButton = new Button("Enemies");
+        EnemyButton.setFocusTraversable(false);
+        EnemyButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        EnemyButton.setOnAction(event -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fr/univartois/butinfo/ihm/view/enemies.fxml"));
+                Parent enemiesRoot = loader.load();
+                Stage stage = (Stage) grid.getScene().getWindow();
+                stage.setScene(new Scene(enemiesRoot));
+                stage.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        GridPane.setHalignment(EnemyButton, HPos.CENTER);
+        GridPane.setValignment(EnemyButton, VPos.CENTER);
+        info.add(EnemyButton, 2, 1);
     }
+
+
 
     public HBox creatViewImageHeartHBox(int nbImage,int textImageTaille) {
         HBox heartsBox = new HBox(5); // espacement de 5px entre les cœurs

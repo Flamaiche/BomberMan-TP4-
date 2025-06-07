@@ -48,7 +48,7 @@ public class Facade implements MaFacadeBomberman {
         configureDifficulty();
         placeCharacter(player);
 
-        controlerFacade.initMenu(player.getMaxBomb(), player.getHealth());
+        controlerFacade.initMenu(player.getMaxBomb(), player.getHealth(), enemies.size());
 
         controlerFacade.updateGame();
         generalBind();

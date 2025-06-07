@@ -30,38 +30,63 @@ public class Facade implements MaFacadeBomberman {
     }
 
     public void addEnemy(String name) {
-        Enemy enemy = new Enemy(this, name);
+        Enemy enemy = new Enemy(name);
         placeCharacter(enemy);
         enemies.add(enemy);
     }
 
     public void initGame() {
-        System.out.println("init");
+        if (timelineEnemies != null) {
+            timelineEnemies.stop();
+        }
+
         map = GameMapFactory.createMapWithRandomBrickWalls(HEIGHT, WIDTH, NBWALL);
         enemies = new ArrayList<>();
         bombs = new ArrayList<>();
         statusFinishPartiee = null;
-        timelineEnemies = new Timeline();
         player = new Player(this);
+        configureDifficulty();
         placeCharacter(player);
 
-        controlerFacade.initMenu(player.MAXBOMB, player.getHealth());
-
-        addEnemy("goblin");
-        addEnemy("minotaur");
-
-        Enemy enemy1 = new Enemy(this, "goblin");
-        Enemy enemy2 = new Enemy(this, "minotaur");
-        placeCharacter(enemy1);
-        placeCharacter(enemy2);
-        enemies.add(enemy1);
-        enemies.add(enemy2);
+        controlerFacade.initMenu(player.getMaxBomb(), player.getHealth());
 
         controlerFacade.updateGame();
         generalBind();
 
         launchEnemyMovement();
     }
+
+    private void configureDifficulty() {
+        int totalTiles = HEIGHT * WIDTH;
+        int emptySpace = totalTiles - NBWALL;
+
+        // Détermine le nombre d'ennemis (difficulté proportionnelle à l'espace vide)
+        int estimatedEnemies = Math.max(2, emptySpace / 20);
+
+        // Calcule le nombre de bombes en fonction du nombre de murs et du nombre d'ennemis
+        int estimatedBombs = Math.max(5, (NBWALL * 2 + estimatedEnemies * 5) / 4);
+        player.setMaxBomb(estimatedBombs);
+
+        // Ajoute des ennemis en alternant les types
+        for (int i = 0; i < estimatedEnemies; i++) {
+            Enemy enemy;
+            switch (i % 5) {
+                case 0 -> enemy = new Goblin();
+                case 1 -> enemy = new Minotaur();
+                case 2 -> enemy = new Agent();
+                case 3 -> enemy = new Punker();
+                case 4 -> enemy = new Rourke();
+                default -> throw new IllegalStateException("Unexpected enemy index: " + i);
+            }
+            placeCharacter(enemy);
+            enemies.add(enemy);
+        }
+
+        System.out.println("Difficulté générée : " +
+                estimatedEnemies + " ennemis | " +
+                estimatedBombs + " bombes max");
+    }
+
 
     public Player getPlayer() {
         return player;
@@ -78,10 +103,23 @@ public class Facade implements MaFacadeBomberman {
     public void movePlayer(int dRow, int dCol) {
         int newRow = player.getRow() + dRow;
         int newCol = player.getColumn() + dCol;
-        if (map.isOnMap(newRow, newCol) && map.get(newRow, newCol).isEmpty()) {
+
+        // Vérifie les coordonnées
+        if (!map.isOnMap(newRow, newCol)) return;
+
+        // Vérifie qu'aucun ennemi n'est présent sur la case cible
+        for (Enemy enemy : enemies) {
+            if (enemy.getRow() == newRow && enemy.getColumn() == newCol) {
+                return; // Ennemi présent => déplacement interdit
+            }
+        }
+
+        // Vérifie que la case est vide
+        if (map.get(newRow, newCol).isEmpty()) {
             player.setPosition(newRow, newCol);
         }
     }
+
 
     public void updateGame() {
         controlerFacade.updateGame();
@@ -101,7 +139,6 @@ public class Facade implements MaFacadeBomberman {
 
     public void dropBomb(AbstractBomb bomb) {
         if (bomb == null) return;
-        System.out.println(player.getInventaireBomb().contains(bomb));
         if (player.getInventaireBomb().contains(bomb)) {
             player.delSelectedBomb(bomb);
         }
@@ -111,9 +148,11 @@ public class Facade implements MaFacadeBomberman {
         controlerFacade.showBomb(bomb);
 
         Timeline timer = new Timeline(new KeyFrame(Duration.seconds(bomb.getDelay()), e -> {
-            bomb.explode();
-            removeBomb(bomb);
-            bombs.remove(bomb);
+            if (statusFinishPartiee == null) {
+                bomb.explode();
+                removeBomb(bomb);
+                bombs.remove(bomb);
+            }
         }));
         timer.setCycleCount(1);
         timer.play();
@@ -168,7 +207,7 @@ public class Facade implements MaFacadeBomberman {
     }
 
     public void launchEnemyMovement() {
-        Timeline timelineEnemies = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+        timelineEnemies = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
             if (enemies.isEmpty()) {
                 statusFinishPartiee = true;
                 stopGame();
@@ -183,11 +222,26 @@ public class Facade implements MaFacadeBomberman {
         int[][] dirs = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
         for (Enemy enemy : enemies) {
-            int[] dir = dirs[rand.nextInt(4)];
-            int newRow = enemy.getRow() + dir[0];
-            int newCol = enemy.getColumn() + dir[1];
-            if (map.isOnMap(newRow, newCol) && map.get(newRow, newCol).isEmpty()) {
-                enemy.setPosition(newRow, newCol);
+            for (int i = 0; i < enemy.getMoveDistance(); i++) {
+                int[] dir = dirs[rand.nextInt(4)];
+                int newRow = enemy.getRow() + dir[0];
+                int newCol = enemy.getColumn() + dir[1];
+
+                // Empêche le déplacement hors carte ou sur une case occupée
+                if (!map.isOnMap(newRow, newCol)) continue;
+                if (!map.get(newRow, newCol).isEmpty()) continue;
+
+                // Gestion du combat avec le joueur
+                if (player.getRow() == newRow && player.getColumn() == newCol) {
+                    player.decHealth();
+                    if (player.getHealth() == 0) {
+                        statusFinishPartiee = false;
+                        stopGame();
+                        return; // On arrête le déplacement si le joueur est mort
+                    }
+                } else {
+                    enemy.setPosition(newRow, newCol);
+                }
             }
         }
     }
@@ -197,7 +251,19 @@ public class Facade implements MaFacadeBomberman {
     }
 
     public void stopGame() {
-        timelineEnemies.stop();
-        System.out.println(statusFinishPartiee);
+        if (timelineEnemies != null) {
+            timelineEnemies.stop();
+        }
+        String message = "";
+        if (statusFinishPartiee != null) {
+            controlerFacade.updateGame();
+            if (statusFinishPartiee) {
+                message = "Partie terminée : Victoire !";
+            } else {
+                message = "Partie terminée : Défaite !";
+            }
+        }
+        System.out.println(message);
+        controlerFacade.showEndMessage(message);
     }
 }

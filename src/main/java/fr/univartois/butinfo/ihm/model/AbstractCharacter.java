@@ -5,13 +5,11 @@ import javafx.beans.property.SimpleIntegerProperty;
 
 public abstract class AbstractCharacter {
 
-    protected MaFacadeBomberman game;
     private final IntegerProperty row = new SimpleIntegerProperty();
     private final IntegerProperty column = new SimpleIntegerProperty();
     private final IntegerProperty health = new SimpleIntegerProperty();
 
-    protected AbstractCharacter(MaFacadeBomberman game, int initialHealth) {
-        this.game = game;
+    protected AbstractCharacter(int initialHealth) {
         this.health.set(initialHealth);
     }
 

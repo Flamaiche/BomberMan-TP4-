@@ -7,6 +7,9 @@
       <Label text="bomberman" />
       <GridPane fx:id="info" alignment="CENTER" gridLinesVisible="true">
       </GridPane>
-      <GridPane fx:id="grid" alignment="CENTER" gridLinesVisible="true">
-      </GridPane>
+      <StackPane>
+            <GridPane fx:id="grid" alignment="CENTER" gridLinesVisible="true">
+            </GridPane>
+            <Label fx:id="endLabel" text=""/>
+      </StackPane>
 </VBox>

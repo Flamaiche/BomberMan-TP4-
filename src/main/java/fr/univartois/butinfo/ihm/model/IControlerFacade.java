@@ -14,4 +14,7 @@ public interface IControlerFacade {
 
     void showExplosion(int row, int column);
 
-    void initMenu(int nbBombMax, int playerHealthInit);}
+    void initMenu(int nbBombMax, int playerHealthInit);
+
+    void showEndMessage(String message);
+}

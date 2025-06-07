@@ -8,15 +8,20 @@ import java.util.Random;
 
 public class Player extends AbstractCharacter {
 
-    public final AbstractBomb[] BOMB_EXITANTE = {new Bomb(game), new ColumnBomb(game), new RowBomb(game), new LargeBomb(game)};
+    private final MaFacadeBomberman game;
+    private AbstractBomb[] BOMB_EXITANTE;
     private Random rand = new Random();
-    public int MAXBOMB = 20;
+    private int MAXBOMB = 20;
     private ArrayList<AbstractBomb> inventaireBomb = new ArrayList<>();
     private IntegerProperty nbBomb = new SimpleIntegerProperty();
 
     public Player(MaFacadeBomberman game) {
-        super(game, 3);
-        remplissageBomb(BOMB_EXITANTE[0]);
+        super(3);
+        this.game = game;
+
+        BOMB_EXITANTE = new AbstractBomb[] {new Bomb(game), new ColumnBomb(game), new RowBomb(game), new LargeBomb(game)};
+
+        remplissageBomb();
         nbBomb.set(inventaireBomb.size());
     }
 
@@ -33,15 +38,23 @@ public class Player extends AbstractCharacter {
         // aleatoire
         if (inventaireBomb.size() == MAXBOMB) return;
         for (int i = inventaireBomb.size(); i < MAXBOMB; i++) {
-            inventaireBomb.add(BOMB_EXITANTE[rand.nextInt(BOMB_EXITANTE.length)]);
+            inventaireBomb.add(creatNewBombByModel(BOMB_EXITANTE[rand.nextInt(BOMB_EXITANTE.length)]));
         }
     }
 
     public void remplissageBomb(AbstractBomb bomb) {
         if (inventaireBomb.size() == MAXBOMB) return;
         for (int i = inventaireBomb.size(); i < MAXBOMB; i++) {
-            inventaireBomb.add(bomb);
+            inventaireBomb.add(creatNewBombByModel(bomb));
         }
+    }
+
+    public AbstractBomb creatNewBombByModel(AbstractBomb model) {
+        if (model instanceof Bomb) return new Bomb(game);
+        if (model instanceof ColumnBomb) return new ColumnBomb(game);
+        if (model instanceof RowBomb) return new RowBomb(game);
+        if (model instanceof LargeBomb) return new LargeBomb(game);
+        throw new IllegalArgumentException("Type de bombe inconnu");
     }
 
     public AbstractBomb getSelectedBomb(int index) {
@@ -71,5 +84,15 @@ public class Player extends AbstractCharacter {
 
     public IntegerProperty nbBombProperty() {
         return nbBomb;
+    }
+
+    public int getMaxBomb() {
+        return MAXBOMB;
+    }
+
+    public void setMaxBomb(int maxBomb) {
+        this.MAXBOMB = maxBomb;
+        inventaireBomb.clear();
+        remplissageBomb();
     }
 }

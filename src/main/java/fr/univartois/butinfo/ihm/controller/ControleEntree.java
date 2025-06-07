@@ -18,6 +18,8 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -34,6 +36,9 @@ public class ControleEntree implements IControlerFacade {
     private GridPane grid;
 
     @FXML private GridPane info;
+
+    @FXML
+    private Label endLabel;
 
     private final int textImageTaille = 20;
     private Label affNbBomb;
@@ -53,7 +58,6 @@ public class ControleEntree implements IControlerFacade {
         }
         // Focus
         grid.setFocusTraversable(true);
-        grid.requestFocus();
         // Gestion du clavier
         grid.setOnKeyPressed(event -> {
             if (facade.getStatusFinishPartiee() != null) return;
@@ -77,6 +81,9 @@ public class ControleEntree implements IControlerFacade {
                 case SPACE -> facade.dropBomb();
             }
         });
+
+        endLabel.setVisible(false);
+        endLabel.setAlignment(Pos.CENTER);
     }
 
     public void setFacade(Facade facade) {
@@ -200,11 +207,13 @@ public class ControleEntree implements IControlerFacade {
 
         // 3e cellule : bouton reset
         resetButton = new Button("Reset");
+        resetButton.setFocusTraversable(false);
         resetButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         resetButton.setOnAction(event -> {
-            System.out.println("Reset button pressed");
             facade.stopGame();
             facade.initGame();
+            grid.setDisable(false);
+            endLabel.setVisible(false);
         });
         GridPane.setHalignment(resetButton, HPos.CENTER);
         GridPane.setValignment(resetButton, VPos.CENTER);
@@ -252,6 +261,14 @@ public class ControleEntree implements IControlerFacade {
         stage.show();
     }
 
+    public void showEndMessage(String message) {
+        endLabel.setText(message);
+        endLabel.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7); -fx-padding: 20px; -fx-font-size: 36px; -fx-text-fill: white;");
+        endLabel.setVisible(true);
 
+        // Optionnel : désactiver la grille de jeu pour bloquer les interactions
+        grid.setDisable(true);
+
+    }
 
 }

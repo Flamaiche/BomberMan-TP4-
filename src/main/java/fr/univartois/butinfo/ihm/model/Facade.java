@@ -21,9 +21,9 @@ public class Facade implements MaFacadeBomberman {
     private IControlerFacade controlerFacade;
     private Boolean statusFinishPartiee;
     private Timeline timelineEnemies;
-    private final int HEIGHT = 10;
+    private final int HEIGHT = 20;
     private final int WIDTH = 20;
-    private final int NBWALL = 30;
+    private final int NBWALL = (HEIGHT * WIDTH) / 5; // 10% de murs
     private boolean paused;
 
     public Facade() {

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+
+
+<?import javafx.geometry.Insets?>
+<BorderPane xmlns="http://javafx.com/javafx/8.0.171"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="fr.univartois.butinfo.ihm.controller.InventaireController">
+
+    <left>
+        <ListView fx:id="bombListView" prefWidth="200" />
+    </left>
+
+    <center>
+        <VBox spacing="10">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <Label text="Nom :" />
+                <Label fx:id="bombNameLabel" />
+            </HBox>
+
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <Label text="Quantité :" />
+                <Label fx:id="bombQuantityLabel" />
+            </HBox>
+
+            <Label text="Description :"/>
+            <TextArea fx:id="bombDescriptionArea" editable="false" wrapText="true" />
+            <ImageView fx:id="bombImageView" fitWidth="128" fitHeight="128" preserveRatio="true" />
+        </VBox>
+    </center>
+
+    <bottom>
+        <HBox spacing="10" alignment="center">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <Button fx:id="validerButton" text="Valider" onAction="#validerChoix" />
+            <Button text="Annuler" onAction="#annulerChoix" />
+        </HBox>
+    </bottom>
+</BorderPane>

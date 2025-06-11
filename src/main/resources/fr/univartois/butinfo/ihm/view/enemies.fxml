@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/8.0.171"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="fr.univartois.butinfo.ihm.controller.EnemiesController">
+
+    <left>
+        <ListView fx:id="enemyListView" prefWidth="200" />
+    </left>
+
+    <center>
+        <VBox spacing="10">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <Label text="Nom :" />
+                <Label fx:id="enemyNameLabel" />
+            </HBox>
+
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <Label text="Santé :" />
+                <Label fx:id="enemyHealthLabel" />
+            </HBox>
+
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <Label text="Distance de déplacement :" />
+                <Label fx:id="enemyMoveDistanceLabel" />
+            </HBox>
+
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <Label text="Coordonnées :" />
+                <Label fx:id="enemyCoordinatesLabel" />
+            </HBox>
+        </VBox>
+    </center>
+
+    <bottom>
+        <HBox spacing="10" alignment="center">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <Button fx:id="closeButton" text="Fermer" onAction="#close" />
+        </HBox>
+    </bottom>
+
+</BorderPane>
